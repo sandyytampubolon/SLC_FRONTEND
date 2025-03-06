@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+      <style>
+        body {
+            background-image: url("{% static 'myapp/image/bg.svg' %}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            width: 100%;
+        }
+         @media (max-width: 768px) { /* Untuk layar HP */
+        body {
+            background-size: cover; /* Menampilkan seluruh gambar tanpa crop */
+            background-position: center;
+             background-image:  url("{% static 'myapp/image/Desain-tanpa-judul-_1_.svg' %}");
+        }
+    }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between text-white min-h-screen">
+    <h1>{{error}}</h1>
+<h2 class="absolute top-20 sm:top-12 w-full text-center text-3xl sm:text-4xl font-bold text-white mb-4">
+    Login
+</h2>
+
+    <div class="flex items-center justify-center h-full">
+        <div class="bg-blur rounded-xl w-[400px] p-8 flex flex-col items-center space-y-6 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            {% comment %} <h2 class="text-2xl font-bold text-white">Daftar</h2> {% endcomment %}
+            <form method="POST" class="w-full flex flex-col space-y-4">
+                {% csrf_token %}
+                <div>
+                    <input id="username" type="text" name="username" required placeholder="Username" 
+                        class="w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <input id="password" type="password" name="password" required placeholder="Password" 
+                        class="w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button type="submit" class="w-full py-2 mt-4 bg-blue-500 rounded-md text-white font-bold hover:bg-blue-600 focus:outline-none">
+                    Login
+                </button>
+                <button id="loginBtn" type="submit" class="w-full py-2 mt-4 bg-red-500 rounded-md text-white font-bold hover:bg-red-600 focus:outline-none">
+                    Login with Google
+                </button>
+                <p class="text-white text-center mt-4">Don't have an account? 
+                    <a href="{% url 'register' %}" class="text-blue-400 hover:text-blue-600 font-semibold">Register here</a>
+                </p>
+            </form>
+        </div>
+    </div>
+    <script type="text/javascript" src="{% static 'js/main.js' %}"></script>
+    <footer class="w-full bg-black/50 text-white py-3 text-center backdrop-blur-md text-sm sm:text-base">
+        <p>&copy; 2025 Sign Language Class. All rights reserved.</p>
+    </footer>
+</body>
+</html>
