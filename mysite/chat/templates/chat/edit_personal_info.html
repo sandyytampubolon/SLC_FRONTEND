@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Personal Info</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: black; /* Hitam pekat */            
+            background-size: cover;
+            background-size: cover;
+            background-position: center;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    {% if messages %}
+        <div class="fixed top-4 right-4 bg-green-500 text-white p-3 rounded-lg shadow-md">
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="glass w-3/4 h-3/4 rounded-xl flex relative">
+        <div class="w-full max-w-[90%] md:w-2/3 flex flex-col items-center md:items-start justify-center text-white p-6">
+            <div class="w-3/4 pl-8 text-white">
+                <form id="accountForm" method="POST" action="{% url 'edit_personal_info' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="flex items-center mb-8">
+                        {% if user_profile.foto %}
+                            <img alt="User avatar" class="rounded-full w-24 h-24 mr-4" src="{{ user_profile.foto.url }}"/>
+                        {% else %}
+                            <img alt="User avatar" class="rounded-full w-24 h-24 mr-4" src="{% static 'default-profile.png' %}"/>
+                        {% endif %}
+                        <div class="ml-4">
+                            <div class="flex items-center">
+                                <span class="text-lg font-bold">Nama Lengkap</span>
+                            </div>
+                            <input type="text" id="usernameInput" name="nama_lengkap" class="text-2xl font-bold" 
+                                value="{{ user_profile.nama_lengkap }}" required 
+                                style="border: none; background: transparent; outline: none; font-weight: bold;">                        
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-6">
+                        <div class="flex items-center">
+                            <span class="text-lg font-bold">Email</span>
+                        </div>
+                        <input type="email" id="emailInput" name="email" class="text-xl font-bold" 
+                            value="{{ user_profile.email }}" required 
+                            style="border: none; background: transparent; outline: none; font-weight: bold;">                    
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="mb-6">
+                        <div class="flex items-center">
+                            <span class="text-lg font-bold">Nomor Ponsel</span>
+                        </div>
+                        <input type="text" id="phoneInput" name="nomor_ponsel" class="text-xl font-bold" 
+                            value="{{ user_profile.nomor_ponsel }}" 
+                            style="border: none; background: transparent; outline: none; font-weight: bold;">
+                    </div>
+
+                    <!-- Photo -->
+                    <div class="mb-6">
+                        <div class="flex items-center">
+                            <span class="text-lg font-bold">Foto</span>
+                        </div>
+                        <input type="file" id="photoInput" name="foto">
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none">
+                        <i class="fas fa-save mr-2"></i>
+                        <span>Simpan</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
