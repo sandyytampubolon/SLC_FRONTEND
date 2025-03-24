@@ -108,7 +108,7 @@
         usernameError.classList.toggle("hidden", isValidUsername);
 
         // Password minimal 8 karakter
-        const isValidPassword = password.length >= 8;
+        const isValidPassword = password.length >= 2;
         passwordError.classList.toggle("hidden", isValidPassword);
 
         if (!isValidUsername || !isValidPassword) {
@@ -177,6 +177,9 @@
         </div>
     </div>
     <script type="text/javascript" src="{% static 'js/main.js' %}"></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <footer class="w-full fixed bottom-0 bg-black bg-opacity-50 text-center py-4 text-lg sm:text-xl font-semibold text-white">
     <p>&copy; 2025 Sign Language Class. All rights reserved.</p>
 </footer>

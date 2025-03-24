@@ -29,36 +29,46 @@
         Daftar
     </h2>
     <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-lg shadow-lg w-full max-w-md p-8">
-        <form method="POST" onsubmit="return validateForm(event)">
+        <form method="POST" onsubmit="return validateForm(event)" class="w-full flex flex-col space-y-4">
+    {% csrf_token %}
     <div>
-        <label for="username" class="block text-sm font-medium">Nama Pengguna</label>
-        <input id="username" type="text" name="username" placeholder="Nama Pengguna" required
-            class="mt-1 w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input id="username" type="text" name="username" required 
+               placeholder="Enter Username"
+               class="mt-1 w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+               pattern="[A-Za-z0-9_]{3,}"
+               title="Username hanya boleh huruf, angka, atau underscore (_) dengan minimal 3 karakter">
+        <p id="username-error" class="hidden text-red-500 text-sm mt-1">Format username salah! Hanya huruf, angka, dan _ dengan minimal 3 karakter.</p>
     </div>
+
     <div>
-        <label for="email" class="block text-sm font-medium">Alamat Email</label>
-        <input id="email" type="email" name="email" placeholder="Alamat Email" required
-            class="mt-1 w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <p id="email-error" class="text-red-500 text-sm hidden">Gunakan Email Teknik Komputer Undip</p>
+        <input id="email" type="email" name="email" required
+               placeholder="Alamat Email"
+               class="mt-1 w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <p id="email-error" class="hidden text-red-500 text-sm mt-1">Gunakan email Teknik Komputer Undip (@student.ce.undip.ac.id)</p>
     </div>
+
     <div>
-        <label for="password" class="block text-sm font-medium">Kata Sandi</label>
-        <input id="password" type="password" name="password" placeholder="Kata Sandi" required minlength="8"
-            class="mt-1 w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <p id="password-error" class="text-red-500 text-sm hidden">Password minimal 8 karakter</p>
+        <input id="password" type="password" name="password" required 
+               placeholder="Enter Password" minlength="8"
+               class="mt-1 w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <p id="password-error" class="hidden text-red-500 text-sm mt-1">Password minimal 8 karakter!</p>
     </div>
+
     <div>
-        <label for="phone" class="block text-sm font-medium">Nomor Handphone</label>
-        <input id="phone" type="tel" name="phone" placeholder="Masukkan Nomor Handphone" required maxlength="12"
-            class="mt-1 w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            oninput="validatePhone(this)">
-        <p id="phone-error" class="text-red-500 text-sm hidden">Nomor Handphone hanya boleh angka (max 12 digit)</p>
+        <input id="phone" type="tel" name="phone" required
+               placeholder="Masukkan Nomor Handphone" maxlength="12"
+               class="mt-1 w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+               oninput="validatePhone(this)">
+        <p id="phone-error" class="hidden text-red-500 text-sm mt-1">Nomor hanya boleh angka (max 12 digit)</p>
     </div>
-    <button type="submit"
-        class="mt-4 w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition">Daftar</button>
+
+    <button type="submit" 
+            class="w-full py-2 mt-4 bg-blue-500 rounded-md text-white font-bold hover:bg-blue-600 focus:outline-none">
+        Daftar
+    </button>
 </form>
 
-<!-- Pesan sukses -->
+<!-- Pesan Sukses -->
 <div id="success-message" class="hidden mt-4 p-4 bg-green-500 text-white text-center rounded-md">
     Akun berhasil dibuat! Anda akan segera dialihkan...
 </div>
@@ -70,6 +80,10 @@
     }
 
     function validateForm(event) {
+        event.preventDefault(); // Cegah submit default
+
+        const usernameField = document.getElementById("username");
+        const usernameError = document.getElementById("username-error");
         const emailField = document.getElementById("email");
         const emailError = document.getElementById("email-error");
         const passwordField = document.getElementById("password");
@@ -77,37 +91,40 @@
         const phoneField = document.getElementById("phone");
         const phoneError = document.getElementById("phone-error");
 
+        // Validasi username
+        const usernamePattern = /^[a-zA-Z0-9_]{3,}$/; 
+        const isValidUsername = usernamePattern.test(usernameField.value.trim());
+        usernameError.classList.toggle("hidden", isValidUsername);
+
+        // Validasi email
         const emailPattern = /^[a-zA-Z0-9._%+-]+@student\.ce\.undip\.ac\.id$/;
         const isValidEmail = emailPattern.test(emailField.value);
         emailError.classList.toggle("hidden", isValidEmail);
 
+        // Validasi password
         const isValidPassword = passwordField.value.length >= 8;
         passwordError.classList.toggle("hidden", isValidPassword);
 
-        if (!isValidEmail || !isValidPassword) {
-            event.preventDefault(); // Stop form submission jika ada kesalahan
-            return false;
-        }
+        // Validasi nomor HP
+        const isValidPhone = phoneField.value.length > 0;
+        phoneError.classList.toggle("hidden", isValidPhone);
 
-        if (phoneField.value.length === 0) {
-            phoneError.classList.remove("hidden");
-            event.preventDefault();
-            return false;
+        if (!isValidUsername || !isValidEmail || !isValidPassword || !isValidPhone) {
+            return false; // Stop submit jika ada error
         }
 
         // Jika validasi berhasil, tampilkan pesan sukses
-        event.preventDefault();
         document.getElementById("success-message").classList.remove("hidden");
 
         // Redirect setelah 3 detik
         setTimeout(() => {
-        window.location.href = "{% url 'login' %}";
-    }, 3000);
-
+            window.location.href = "{% url 'login' %}";
+        }, 3000);
 
         return false;
     }
 </script>
+
 
 
         <p class="text-center text-sm mt-4">

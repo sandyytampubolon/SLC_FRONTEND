@@ -154,7 +154,8 @@ def join_meet(request):
             return redirect('meeting_page', room_name=meeting.id)
         except Meeting.DoesNotExist:
             return render(request, 'chat/join_meet.html', {'error_message': 'Meeting not found'})
-    meetings = Meeting.objects.filter(created_by=request.user)
+    # Menggunakan participants karena created_by tidak ada
+    meetings = Meeting.objects.filter(participants=request.user)
     return render(request, 'chat/join_meet.html', {'meetings': meetings})
 
 # Delete meeting view
@@ -180,8 +181,8 @@ def meeting_page(request, room_name):
 # Personal info view
 @login_required
 def personal_info(request):
-    # Ambil user profile berdasarkan user yang sedang login
-    user_profile = get_object_or_404(UserProfile, user=request.user)
+    # Ambil atau buat UserProfile jika belum ada
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
 
     return render(request, 'chat/personal_info.html', {'user_profile': user_profile})
 
