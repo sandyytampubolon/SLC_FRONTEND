@@ -81,8 +81,8 @@
 
 #guide-box {
     position: absolute; /* Kotak berada di atas video */
-    width: 224px; /* Ukuran kotak */
-    height: 224px;
+    width: 21rem; /* Ukuran kotak */
+    height: 21rem;
     top: 0;
     left: 0;
     border: 3px dashed red; /* Tampilan kotak */

@@ -835,6 +835,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let currentPrediction = "";
         let lastPrediction = "";
         let lastPredictionTime = 0;
+        let deleting = false; // Status penghapusan
 
         const classLabels = [
             'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 
@@ -892,13 +893,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     const now = Date.now();
 
                     if (predictedLabel === "DELETE") {
-                        currentPrediction= "DELETE";
-                        if (predictedWords.length > 0 && now - lastPredictionTime >= 2000) {
-                            predictedWords.pop();
-                            lastPredictionTime = now;
+                        if (!deleting && predictedWords.length > 0) {
+                            deleting = true; // Mulai proses penghapusan
+                            let tempWord = predictedWords.slice(0, -1);
+                            let deletingChar = predictedWords[predictedWords.length - 1];
+    
+                            // Tampilkan huruf yang akan dihapus dalam warna merah
+                            outputText.innerHTML = `Word: ${tempWord}<span style="color: red;">${deletingChar}</span>`;
+    
+                            setTimeout(() => {
+                                // Jika pengguna tetap dalam mode DELETE selama 2 detik, hapus huruf
+                                if (deleting) {
+                                    predictedWords = tempWord;
+                                    outputText.innerHTML = `Word: ${predictedWords.join("")}`;
+                                    deleting = false;
+                                }
+                            }, 2000);
                         }
-                        lastPrediction = "";
-                        currentPrediction = "";
+                        return;
                     } else if (predictedLabel === "SPACE") {
                         if (predictedWords.length > 0 && predictedWords[predictedWords.length - 1] !== " " && now - lastPredictionTime >= 2000) {
                             predictedWords.pop();
@@ -926,11 +938,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Update display to show the current letter being recognized
                     let displayText = predictedWords.join("");
-                    if (currentPrediction) {
-                        displayText += currentPrediction;
-                    }
 
-                    outputText.innerText = "Word: " + displayText;
+                    outputText.innerHTML = `Word: ${displayText}<span style="color: gold;">${currentPrediction}</span>`;
 
                     sendSignal("prediction", { prediction: displayText });
                     tf.dispose(inputTensor); // Dispose tensors to free memory
