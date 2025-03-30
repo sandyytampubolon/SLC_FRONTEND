@@ -720,12 +720,29 @@ document.addEventListener('DOMContentLoaded', function() {
         async function startRecording() {
             try {
                 console.log("Meminta akses rekaman layar...");
-                stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+                const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
                 console.log("Akses diberikan, mulai merekam...");
+
+                // Meminta akses ke mikrofon
+                const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                console.log("Akses mikrofon diberikan...");
+
+                // Gabungkan stream layar dan audio
+                const combinedStream = new MediaStream([
+                    ...displayStream.getVideoTracks(),
+                    ...audioStream.getAudioTracks()
+                ]);
+
+                const audioTracks = combinedStream.getAudioTracks();
+                if (audioTracks.length > 0) {
+                    console.log("Audio track ditemukan:", audioTracks[0]);
+                } else {
+                    console.warn("Tidak ada audio track yang ditemukan!");
+                }
 
                 let options = { mimeType: 'video/webm; codecs=vp9' };
                 recordedChunks = [];
-                mediaRecorder = new MediaRecorder(stream, options);
+                mediaRecorder = new MediaRecorder(combinedStream, options);
 
                 mediaRecorder.ondataavailable = function(event) {
                     if (event.data.size > 0) {
@@ -1003,27 +1020,35 @@ document.addEventListener('DOMContentLoaded', function() {
         predictionItem.textContent = `${peerUsername}: ${prediction}`;
     }
 
-    sharePredictionBtn.addEventListener('click', function() {
-        if (sharePrediction.style.display === "none") {
-            sharePrediction.style.display = "block";
-        } else {
-            sharePrediction.style.display = "none";
-        }
-    });
+    if (sharePredictionBtn && sharePrediction) {
+        sharePredictionBtn.addEventListener('click', function () {
+            if (sharePrediction.style.display === 'none') {
+                sharePrediction.style.display = 'block';
+            } else {
+                sharePrediction.style.display = 'none';
+            }
+        });
+    } else {
+        console.warn('sharePredictionBtn or sharePrediction is not found in the DOM.');
+    }
 
-    msgBtn.addEventListener('click', function() {
-        if (chat.style.display === "none") {
-            chat.style.display = "block";
-        } else {
-            chat.style.display = "none";
-        }
-    });
+    if (msgBtn) {
+        msgBtn.addEventListener('click', function () {
+            if (chat.style.display === 'none') {
+                chat.style.display = 'block';
+            } else {
+                chat.style.display = 'none';
+            }
+        });
+    }
 
-    navMenu.addEventListener('click', function() {
-        if (navbarDropwdown.style.display === "none") {
-            navbarDropwdown.style.display = "block";
-        } else {
-            navbarDropwdown.style.display = "none";
-        }
-    });
+    if (navMenu && navbarDropdown) {
+        navMenu.addEventListener('click', function () {
+            if (navbarDropdown.style.display === 'none') {
+                navbarDropdown.style.display = 'block';
+            } else {
+                navbarDropdown.style.display = 'none';
+            }
+        });
+    }
 });
