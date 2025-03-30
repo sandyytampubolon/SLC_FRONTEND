@@ -88,5 +88,32 @@
         </div>
     </div>
     <script src="{% static 'js/main.js' %}"></script>
+    
+    //untuk menampilkan pesan error jika waktu yang dipilih sudah lewat
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector("form");
+            const startTimeInput = document.getElementById("start_time");
+    
+            form.addEventListener("submit", function (event) {
+                const selectedTime = new Date(startTimeInput.value);
+                const now = new Date();
+    
+                if (!startTimeInput.value) {
+                    alert("Please select a start time.");
+                    event.preventDefault();
+                    startTimeInput.focus();
+                    return;
+                }
+    
+                if (selectedTime < now) {
+                    event.preventDefault();
+                    alert("Start time cannot be in the past. Please select a valid time.");
+                    startTimeInput.focus();
+                }
+            });
+        });
+    </script>
+    
 </body>
 </html>
