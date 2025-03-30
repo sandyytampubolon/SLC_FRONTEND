@@ -16,11 +16,14 @@ from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 from django.contrib.sessions.models import Session
 from django.contrib.auth.hashers import check_password
+from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
 from chat.models import UserProfile, Meeting
 from .forms import MeetingForm
-import re 
+from django.utils import timezone
+from datetime import timedelta
+
 User = get_user_model()  # Use the custom user model
 
 
@@ -98,17 +101,30 @@ def register(request):
         password = request.POST['password']
 
         if User.objects.filter(username=username).exists():
-            return render(request, 'chat/register.html', {'error': 'Username sudah digunakan'})
+            messages.error(request, 'Username sudah digunakan')
+            return redirect('register')
 
         if User.objects.filter(email=email).exists():
-            return render(request, 'chat/register.html', {'error': 'Email sudah digunakan'})
+            messages.error(request, 'Email sudah digunakan')
+            return redirect('register')
 
         user = User(username=username, email=email)
-        user.set_password(password)  # Gunakan hashing saat menyimpan password
+        user.set_password(password)
         user.save()
 
+        messages.success(request, 'Akun berhasil dibuat! Silakan login.')
         return redirect('login')
     return render(request, 'chat/register.html')
+
+def check_username(request):
+    username = request.GET.get('username', '')
+    exists = User.objects.filter(username=username).exists()
+    return JsonResponse({'exists': exists})
+
+def check_email(request):
+    email = request.GET.get('email', '')
+    exists = User.objects.filter(email=email).exists()
+    return JsonResponse({'exists': exists})
 
 # Dashboard view
 def dashboard(request):
@@ -144,7 +160,7 @@ def new_meet(request):
 
 # Join meeting view
 @login_required
-def join_meet(request):
+def join_meet(request):  
     if request.method == 'POST':
         meeting_code = request.POST.get('meeting_code')
         if not meeting_code:
@@ -154,8 +170,13 @@ def join_meet(request):
             return redirect('meeting_page', room_name=meeting.id)
         except Meeting.DoesNotExist:
             return render(request, 'chat/join_meet.html', {'error_message': 'Meeting not found'})
-    # Menggunakan participants karena created_by tidak ada
-    meetings = Meeting.objects.filter(participants=request.user)
+        
+    # Filter waktu
+    now = timezone.now()
+    meetings = Meeting.objects.filter(
+        created_by=request.user,
+        start_time__gte=now - timedelta(days=1)  # Ambil meeting sejak 1 hari yang lalu hingga ke depan
+    ).order_by('start_time')
     return render(request, 'chat/join_meet.html', {'meetings': meetings})
 
 # Delete meeting view
@@ -211,6 +232,34 @@ def logout_view(request):
         return JsonResponse({"status": "success", "message": "Logged out successfully"})
     
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+
+
+def lupa_password(request):
+    return render(request, 'chat/lupa_pwd.html')
+
+def validate_user_info(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        user = User.objects.filter(username=username, email=email, userprofile__nomor_ponsel=phone).first()
+        if user:
+            request.session['email'] = email
+            return JsonResponse({'success': True})
+        return JsonResponse({'success': False, 'error': 'Informasi tidak valid'})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+def reset_password(request):
+    if request.method == 'POST':
+        email = request.session.get('email')
+        user = User.objects.filter(email=email).first()
+        if user:
+            new_password = request.POST.get('new_password')
+            user.set_password(new_password)
+            user.save()
+            return redirect('login')
+    return render(request, 'chat/reset_password.html')
+
 
 class MeetingCreateView(generics.CreateAPIView):
     queryset = Meeting.objects.all()
