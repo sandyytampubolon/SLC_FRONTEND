@@ -34,11 +34,11 @@ class Meeting(models.Model):
         default=generate_objectid_string,  # Use the named function here
         editable=False
     )  # Supports ObjectId as string
-    start_time = models.DateTimeField()
     title = models.CharField(max_length=100)
     description = models.TextField()
-    participants = models.ManyToManyField(CustomUser)  # Link to User model
-    recording_url = models.URLField()
+    start_time = models.DateTimeField()
+    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    participants = models.ManyToManyField(CustomUser, related_name= 'meetings')  # Link to User model
     created_at = models.DateTimeField(auto_now_add=True)
     code = models.CharField(max_length=6)
 
