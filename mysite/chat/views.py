@@ -23,10 +23,15 @@ from chat.models import UserProfile, Meeting
 from .forms import MeetingForm
 from django.utils import timezone
 from datetime import timedelta
+import traceback  # Tambahkan untuk menangkap error lebih jelas
+from pymongo import MongoClient  # Import MongoDB client
 
 User = get_user_model()  # Use the custom user model
 
-
+# Connect to MongoDB
+client = MongoClient('mongodb+srv://myAtlasDBUser:Vincent2002@myatlasclusteredu.jzsh9rx.mongodb.net/?retryWrites=true&w=majority&appName=myAtlasClusterEDU')  # Replace with your MongoDB connection string
+db = client['slc_capstone']  # Replace with your database name
+collection = db['meet_user']  # Replace with your collection name
 
 # Create your views here.
 def main(request):
@@ -62,36 +67,45 @@ import traceback  # Tambahkan untuk menangkap error lebih jelas
 def google_login_callback(request):
     if request.method == "POST":
         try:
-            data = json.loads(request.body)  # Ambil data JSON dari request
-            print("Google Callback Data:", data)  # Debugging
+            data = json.loads(request.body)
+            print("Google Callback Data:", data)
 
             google_email = data.get("email")
-            google_name = data.get("name")
 
             if not google_email:
                 return JsonResponse({"error": "Invalid Google response: missing email"}, status=400)
 
-            # Cek apakah user sudah ada di database
-            user, created = User.objects.get_or_create(username=google_email, defaults={"first_name": google_name})
-            
-            # **Simpan sesi login di Django**
-            auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            request.session["user_id"] = str(user._id)
-            request.session["login_method"] = "google"
+            # Cek di MongoDB
+            user_mongo = collection.find_one({'email': google_email})
+            if not user_mongo:
+                print(f"Login gagal: email {google_email} belum terdaftar.")
+                return JsonResponse({"error": "Email belum terdaftar. Silakan registrasi terlebih dahulu."}, status=401)
+
+            # Cek juga di Django user
+            User = get_user_model()
+            user_django = User.objects.filter(email=google_email).first()
+            if not user_django:
+                print(f"Tidak ditemukan user Django untuk email: {google_email}")
+                return JsonResponse({"error": "User Django tidak ditemukan."}, status=401)
+
+            # Autentikasi user di Django
+            auth_login(request, user_django, backend='django.contrib.auth.backends.ModelBackend')
+
+            # Simpan _id MongoDB ke sesi
+            request.session["user_id"] = str(user_mongo['_id'])
+            request.session['login_method'] = 'google'
             request.session.modified = True
 
-            print(f"User {user.username} berhasil login dengan Google.")
+            print(f"User {google_email} berhasil login dengan Google.")
+            return JsonResponse({"message": "Login successful", "user": google_email})
 
-            return JsonResponse({"message": "Login successful", "user": user.username})
-        
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON format"}, status=400)
         except Exception as e:
-            print("Google Login Error:", str(e))  # Debugging ke terminal
+            print("Google Login Error:", str(e))
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
-
 
 # Register view
 def register(request):
